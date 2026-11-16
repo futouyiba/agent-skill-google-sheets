@@ -1,14 +1,29 @@
 # Agent Skill: Google Sheets（服务账号方案）
 
+[English version](README_EN.md)
+
 一个可移植的 Agent Skill 包，让任何支持 [Agent Skills](https://www.anthropic.com/news/skills) 标准的 AI 客户端（Claude Code、Claude Desktop、以及兼容该格式的第三方 agent 客户端）安全地读写你的 Google Sheets。
 
-**方案**：本地 MCP 服务器（[mcp-google-sheets](https://github.com/xing5/mcp-google-sheets)）+ Google Cloud 服务账号。不依赖任何订阅、不需要 claude.ai 连接器；代价是每张表首次使用前要共享给服务账号一次。
+## 为什么是"本地服务器 + 共享邮箱"这个模式？
 
-> 为什么不用 Google 官方远程 MCP（sheetsmcp.googleapis.com）？它全链路很好用，但目前要求 GCP 项目加入 Workspace Developer Preview 计划，**个人 Gmail 账号无法加入**。若你有 Workspace 账号，推荐直接用官方方案（见文末）。
+接入 Google Sheets 给 AI 客户端，通常有三条路，前两条对个人用户都是堵的：
+
+| 路线 | 门槛 | 结论 |
+|---|---|---|
+| ① Google 官方远程 MCP（`sheetsmcp.googleapis.com`） | 要求背后的 GCP 项目加入 **Workspace Developer Preview 计划**，而该计划的申请表单**不接受个人 Gmail**——必须是 Workspace 公司/组织邮箱 | 个人用户被挡 |
+| ② claude.ai 官方连接器（自定义 Connector） | 需要 Claude Pro/Max/Team/Enterprise 订阅；OAuth 回调走 claude.ai 后端，第三方 API token / 自建中转用户不可用 | 非官方订阅用户被挡 |
+| ③ 本仓库的方案：**本地 MCP 服务器 + 服务账号** | 只要一个免费的 Google Cloud 项目 | ✅ 人人可用 |
+
+本方案用 [mcp-google-sheets](https://github.com/xing5/mcp-google-sheets) 在本地跑 MCP 服务器，通过 **Google Cloud 服务账号**（一种程序身份，不是人的账号）直连 Sheets API 正式版：
+
+- **不依赖任何订阅、任何预览资格**——走的是 GA 正式版 API，长期稳定；
+- **权限边界清晰**：服务账号只能看到**显式共享给它**的表，你的其他文件它一概不可见。代价只是每张表首次使用前共享一次（跟共享给同事一样点一下）。
+
+> 如果你有 Workspace 公司邮箱，推荐直接走官方远程 MCP（①），以你自己账号的身份访问全部表格、无需逐张共享——步骤见文末附录。
 
 ## 目录
 
-- `SKILL.md` — 技能本体（放進你的 skills 目录）
+- `SKILL.md` — 技能本体（放进你的 skills 目录）
 - `proxy-patch/sitecustomize.py` — 受限网络（无法直连 googleapis.com）所需的代理补丁，可选
 
 ## 接入步骤
@@ -41,6 +56,7 @@ claude mcp add gsheets -s user \
 ```
 
 说明：
+
 - `--with 'mcp<2'` 必须保留：mcp-google-sheets 尚不兼容 mcp 2.x（FastMCP 已改名）。
 - `--with pysocks` + `PYTHONPATH` 指向补丁：httplib2 无视代理环境变量，补丁在启动时强制挂 ProxyInfo。代理地址可用 `GSHEETS_PROXY_HOST` / `GSHEETS_PROXY_PORT` 环境变量覆盖（默认 127.0.0.1:7897）。
 - 依赖 [uv](https://docs.astral.sh/uv/)（`uvx`）。首次启动会自动下载依赖。
@@ -62,9 +78,9 @@ cp SKILL.md ~/.claude/skills/gsheets/
 - 服务账号只能看到显式共享给它的表——权限边界清晰，但记得共享时给的是"编辑者"还是"查看者"要按需选择。
 - 密钥泄露/过期：在 Google Cloud 删除该密钥重新生成即可。
 
-## 附：Google 官方远程 MCP（有 Workspace 账号时的更优解)
+## 附：有 Workspace 账号时的更优解（官方远程 MCP）
 
-1. 按官方文档 [Configure the Sheets MCP server](https://developers.google.com/workspace/sheets/api/guides/configure-mcp-server) 建 OAuth 客户端（重定向 URI 加 `http://localhost:7777/callback`）。
+1. 按官方文档 [Configure the Sheets MCP server](https://developers.google.com/workspace/sheets/api/guides/configure-mcp-server) 建 OAuth 客户端（重定向 URI 加 `http://localhost:7777/callback`），并让项目加入 Workspace Developer Preview 计划（需公司邮箱）。
 2. `claude mcp add -s user --transport http --client-id <你的客户端ID> --callback-port 7777 gsheets https://sheetsmcp.googleapis.com/mcp/v1`
 3. `claude mcp login gsheets`（受限网络需先 export 代理环境变量）。
 
