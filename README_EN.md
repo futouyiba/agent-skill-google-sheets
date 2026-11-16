@@ -1,8 +1,26 @@
 # Agent Skill: Google Sheets (Service Account Edition)
 
-[中文版](README.md)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+[![Google Sheets API](https://img.shields.io/badge/Google%20Sheets-API-34A853?logo=googlesheets&logoColor=white)](https://developers.google.com/sheets/api)
+[![MCP](https://img.shields.io/badge/MCP-Model%20Context%20Protocol-8A2BE2)](https://modelcontextprotocol.io)
+[![Agent Skills](https://img.shields.io/badge/compatible%20with-Agent%20Skills%20standard-ff69b4)](https://www.anthropic.com/news/skills)
+[![uv](https://img.shields.io/badge/depends%20on-uv-de5c21?logo=uv&logoColor=white)](https://docs.astral.sh/uv/)
+
+**English · [中文版](README.md)**
 
 A portable Agent Skill package that lets any AI client supporting the [Agent Skills](https://www.anthropic.com/news/skills) standard (Claude Code, Claude Desktop, and compatible third-party agent clients) safely read and write your Google Sheets.
+
+## 📑 Table of Contents
+
+- [Why a "local server + share-to-email" pattern?](#why-a-local-server--share-to-email-pattern)
+- [Contents](#contents)
+- [Setup](#setup)
+  - [Step 1: Google Cloud side](#step-1-google-cloud-side-10-minutes-all-in-the-browser)
+  - [Step 2: Register the MCP server](#step-2-register-the-mcp-server-claude-code--compatible-clients)
+  - [Step 3: Install the skill](#step-3-install-the-skill)
+- [Security notes](#security-notes)
+- [Appendix: the official remote MCP route](#appendix-the-better-route-if-you-have-a-workspace-account-official-remote-mcp)
+- [License](#license)
 
 ## Why a "local server + share-to-email" pattern?
 
@@ -21,12 +39,12 @@ This package runs [mcp-google-sheets](https://github.com/xing5/mcp-google-sheets
 
 > If you do have a Workspace (company) account, prefer the official remote MCP (①): it acts as your own Google identity with access to all your spreadsheets and no per-sheet sharing. See the appendix at the end.
 
-## Contents
+## 📁 Contents
 
 - `SKILL.md` — the skill itself (drop into your client's skills directory)
 - `proxy-patch/sitecustomize.py` — optional proxy patch for restricted networks (where googleapis.com is not directly reachable)
 
-## Setup
+## 🚀 Setup
 
 ### Step 1: Google Cloud side (~10 minutes, all in the browser)
 
@@ -72,13 +90,13 @@ cp SKILL.md ~/.claude/skills/gsheets/
 
 Start a new session and it's live. Then just say "read my xx spreadsheet".
 
-## Security notes
+## 🔒 Security notes
 
 - **`service-account.json` is a secret. Never commit it to a repo or share it.** This repository must not contain any key files.
 - The service account only sees spreadsheets explicitly shared with it — a clean permission boundary. Choose Viewer vs. Editor per spreadsheet as needed.
 - If a key leaks or expires: delete it in Google Cloud and generate a new one.
 
-## Appendix: the better route if you have a Workspace account (official remote MCP)
+## 📎 Appendix: the better route if you have a Workspace account (official remote MCP)
 
 1. Follow the official doc [Configure the Sheets MCP server](https://developers.google.com/workspace/sheets/api/guides/configure-mcp-server) to create an OAuth client (add redirect URI `http://localhost:7777/callback`) and enroll your project in the Workspace Developer Preview Program (requires a company email).
 2. `claude mcp add -s user --transport http --client-id <your-client-id> --callback-port 7777 gsheets https://sheetsmcp.googleapis.com/mcp/v1`

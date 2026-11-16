@@ -1,8 +1,26 @@
 # Agent Skill: Google Sheets（服务账号方案）
 
-[English version](README_EN.md)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+[![Google Sheets API](https://img.shields.io/badge/Google%20Sheets-API-34A853?logo=googlesheets&logoColor=white)](https://developers.google.com/sheets/api)
+[![MCP](https://img.shields.io/badge/MCP-Model%20Context%20Protocol-8A2BE2)](https://modelcontextprotocol.io)
+[![Agent Skills](https://img.shields.io/badge/%E5%85%BC%E5%AE%B9-Agent%20Skills%20%E6%A0%87%E5%87%86-ff69b4)](https://www.anthropic.com/news/skills)
+[![uv](https://img.shields.io/badge/%E4%BE%9D%E8%B5%96-uv-de5c21?logo=uv&logoColor=white)](https://docs.astral.sh/uv/)
+
+**[English](README_EN.md) · 中文**
 
 一个可移植的 Agent Skill 包，让任何支持 [Agent Skills](https://www.anthropic.com/news/skills) 标准的 AI 客户端（Claude Code、Claude Desktop、以及兼容该格式的第三方 agent 客户端）安全地读写你的 Google Sheets。
+
+## 📑 目录
+
+- [为什么是这个模式？](#为什么是本地服务器--共享邮箱这个模式)
+- [目录结构](#目录结构)
+- [接入步骤](#接入步骤)
+  - [第 1 步：Google Cloud 侧](#第-1-步google-cloud-侧约-10-分钟全在浏览器)
+  - [第 2 步：注册 MCP 服务器](#第-2-步注册-mcp-服务器claude-code--兼容客户端)
+  - [第 3 步：安装技能](#第-3-步安装技能)
+- [安全须知](#安全须知)
+- [附录：有 Workspace 账号时的更优解](#附有-workspace-账号时的更优解官方远程-mcp)
+- [License](#license)
 
 ## 为什么是"本地服务器 + 共享邮箱"这个模式？
 
@@ -21,12 +39,12 @@
 
 > 如果你有 Workspace 公司邮箱，推荐直接走官方远程 MCP（①），以你自己账号的身份访问全部表格、无需逐张共享——步骤见文末附录。
 
-## 目录
+## 📁 目录结构
 
 - `SKILL.md` — 技能本体（放进你的 skills 目录）
 - `proxy-patch/sitecustomize.py` — 受限网络（无法直连 googleapis.com）所需的代理补丁，可选
 
-## 接入步骤
+## 🚀 接入步骤
 
 ### 第 1 步：Google Cloud 侧（约 10 分钟，全在浏览器）
 
@@ -72,13 +90,13 @@ cp SKILL.md ~/.claude/skills/gsheets/
 
 新开会话即生效。之后直接说"读一下我的 xx 表格"。
 
-## 安全须知
+## 🔒 安全须知
 
 - **`service-account.json` 是密钥，绝不要提交到仓库或分享给他人。** 本仓库不应包含任何密钥文件。
 - 服务账号只能看到显式共享给它的表——权限边界清晰，但记得共享时给的是"编辑者"还是"查看者"要按需选择。
 - 密钥泄露/过期：在 Google Cloud 删除该密钥重新生成即可。
 
-## 附：有 Workspace 账号时的更优解（官方远程 MCP）
+## 📎 附：有 Workspace 账号时的更优解（官方远程 MCP）
 
 1. 按官方文档 [Configure the Sheets MCP server](https://developers.google.com/workspace/sheets/api/guides/configure-mcp-server) 建 OAuth 客户端（重定向 URI 加 `http://localhost:7777/callback`），并让项目加入 Workspace Developer Preview 计划（需公司邮箱）。
 2. `claude mcp add -s user --transport http --client-id <你的客户端ID> --callback-port 7777 gsheets https://sheetsmcp.googleapis.com/mcp/v1`
